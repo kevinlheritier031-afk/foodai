@@ -39,8 +39,7 @@ export default function Onboarding() {
   const handleNext = async () => {
     if (isLast) {
       await recordConsent(RGPD_VERSION);
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-      router.replace(supabaseUrl.includes('placeholder') ? '/(app)' : '/(auth)/login');
+      router.replace('/(auth)/login');
     } else {
       setStep(step + 1);
     }

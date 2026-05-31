@@ -13,8 +13,7 @@ export default function Index() {
       try {
         const consented = await hasConsented(RGPD_VERSION);
         if (!consented) { setRoute('/onboarding'); return; }
-        const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-        setRoute(supabaseUrl.includes('placeholder') ? '/(app)' : '/(auth)/login');
+        setRoute('/(auth)/login');
       } catch (e: any) {
         setError(e?.message ?? String(e));
       }
