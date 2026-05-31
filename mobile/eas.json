@@ -14,7 +14,6 @@
     "preview": {
       "distribution": "internal",
       "node": "20.18.0",
-      "npmVersion": "10.9.2",
       "android": {
         "buildType": "apk"
       },
