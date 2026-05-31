@@ -20,7 +20,8 @@
       },
       "package": "com.foodai.app",
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "ios": {
@@ -50,8 +51,15 @@
       "expo-web-browser",
       "expo-image-picker"
     ],
+    "newArchEnabled": true,
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bf3e3575-8424-4e73-8d77-d50d488fb2c8"
+      }
     }
   }
 }
