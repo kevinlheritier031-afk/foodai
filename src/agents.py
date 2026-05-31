@@ -342,7 +342,7 @@ RÈGLES DE RÉPONSE (toujours respecter) :
         return resp.text or "Désolée, je n'ai pas pu répondre. Réessayez !"
     except Exception as exc:
         logger.error("Erreur Aria : %s", exc)
-        return "Je rencontre un problème technique. Réessayez dans un instant 😊"
+        return f"[DEBUG] {type(exc).__name__}: {exc}"
 
 
 def analyser_prise_de_sang(images: list[dict]) -> dict:
