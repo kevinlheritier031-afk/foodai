@@ -335,7 +335,6 @@ RÈGLES DE RÉPONSE (toujours respecter) :
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system,
-                thinking_config=types.ThinkingConfig(thinking_budget=0),
                 temperature=0.75,
                 max_output_tokens=900,
             ),
