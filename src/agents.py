@@ -85,7 +85,6 @@ def _call_gemini(system: str, user: str, max_tokens: int = 1024) -> dict:
         config=types.GenerateContentConfig(
             system_instruction=system,
             response_mime_type="application/json",
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
             temperature=0.2,
             max_output_tokens=max_tokens,
         ),
