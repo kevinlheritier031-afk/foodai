@@ -17,9 +17,9 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://foodai-api.vercel.app",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://placeholder.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "placeholder"
+        "EXPO_PUBLIC_API_URL": "https://foodai-rkwnahod8-kl-haccp-s-projects.vercel.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qxrjepzrvvysfctwnljz.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cmplcHpydnZ5c2ZjdHdubGp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMzc0NzcsImV4cCI6MjA5NTgxMzQ3N30._NEA3XUI1vGClHaOcsCo0COlDZnkurvJ3x-KA7MR_9E"
       }
     },
     "production": {
@@ -27,7 +27,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://foodai-api.vercel.app"
+        "EXPO_PUBLIC_API_URL": "https://foodai-rkwnahod8-kl-haccp-s-projects.vercel.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://qxrjepzrvvysfctwnljz.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cmplcHpydnZ5c2ZjdHdubGp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMzc0NzcsImV4cCI6MjA5NTgxMzQ3N30._NEA3XUI1vGClHaOcsCo0COlDZnkurvJ3x-KA7MR_9E"
       }
     }
   },
