@@ -86,6 +86,14 @@ def health():
     return {"status": "ok", "version": "2.0.0"}
 
 
+@app.get("/api/search")
+def search(q: str, limit: int = 5):
+    if len(q.strip()) < 2:
+        return {"results": []}
+    results = get_db().rechercher_aliments(q.strip(), limit=limit)
+    return {"results": [r.model_dump() for r in results]}
+
+
 @app.post("/api/analyze")
 def analyze(request: AnalyzeRequest):
     aliment = get_db().rechercher_aliment(request.aliment)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, ActivityIndicator, Alert, Modal,
@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { useAppStore } from '../../store/useAppStore';
 import { getClinicalData, addJournalEntry } from '../../lib/database';
-import { analyzeFood } from '../../lib/api';
+import { analyzeFood, searchFoods, FoodSuggestion } from '../../lib/api';
 import { AnalysisResult, MealType } from '../../types';
 import VerdictCard from '../../components/VerdictCard';
 import AlertBadge from '../../components/AlertBadge';
@@ -27,6 +27,26 @@ export default function Analyze() {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<MealType>('dejeuner');
   const [adding, setAdding] = useState(false);
+  const [suggestions, setSuggestions] = useState<FoodSuggestion[]>([]);
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleQueryChange = (text: string) => {
+    setQuery(text);
+    clearTimeout(searchTimer.current);
+    if (text.trim().length >= 2) {
+      searchTimer.current = setTimeout(async () => {
+        const results = await searchFoods(text);
+        setSuggestions(results);
+      }, 350);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (nom: string) => {
+    setQuery(nom);
+    setSuggestions([]);
+  };
 
   const handleAnalyze = async () => {
     if (!query.trim()) { Alert.alert('Aliment manquant', 'Saisissez un aliment à analyser.'); return; }
@@ -34,6 +54,7 @@ export default function Analyze() {
 
     setLoading(true);
     setResult(null);
+    setSuggestions([]);
     try {
       const clinical = await getClinicalData(activeProfileId);
       if (!clinical) { Alert.alert('Profil incomplet', 'Configurez d\'abord les données cliniques dans votre profil.'); setLoading(false); return; }
@@ -108,12 +129,34 @@ export default function Analyze() {
           <TextInput
             style={styles.searchInput}
             value={query}
-            onChangeText={setQuery}
+            onChangeText={handleQueryChange}
             placeholder="Banane, cabillaud, pâtes…"
             placeholderTextColor={Colors.textMuted}
             onSubmitEditing={handleAnalyze}
             returnKeyType="search"
           />
+
+          {suggestions.length > 0 && (
+            <View style={styles.suggestionsBox}>
+              {suggestions.map((s, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.suggestionRow, i < suggestions.length - 1 && styles.suggestionRowBorder]}
+                  onPress={() => handleSelectSuggestion(s.nom)}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.suggestionName} numberOfLines={1}>{s.nom}</Text>
+                    <Text style={styles.suggestionMeta}>
+                      {s.energie_kcal.toFixed(0)} kcal · K⁺ {s.potassium_mg.toFixed(0)} mg · P {s.phosphore_mg.toFixed(0)} mg
+                    </Text>
+                  </View>
+                  <Text style={styles.suggestionArrow}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           <View style={styles.searchRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.searchLabel}>Quantité</Text>
@@ -283,6 +326,41 @@ const styles = StyleSheet.create({
   quantityInput: { flex: 1, marginBottom: 0 },
   unitBadge: { backgroundColor: Colors.primaryLight, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14 },
   unitText: { color: Colors.primary, fontWeight: '700', fontSize: 15 },
+
+  suggestionsBox: {
+    backgroundColor: Colors.inputBg,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    gap: 8,
+  },
+  suggestionRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  suggestionName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  suggestionMeta: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  suggestionArrow: {
+    fontSize: 20,
+    color: Colors.primary,
+    fontWeight: '300',
+  },
 
   analyzeBtn: {
     flexDirection: 'row',

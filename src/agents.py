@@ -7,6 +7,7 @@ from typing import Optional
 
 from google import genai
 from google.genai import types
+from groq import Groq
 
 from .models import (
     ProfilClinique,
@@ -20,10 +21,13 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
-MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-2.0-flash"
+GROQ_MODEL   = "llama-3.3-70b-versatile"
+
 _DEFAULT_PROFIL = ProfilClinique()
 _DEFAULT_SEUILS = SeuilsNutritionnels()
 _gemini: Optional[genai.Client] = None
+_groq:   Optional[Groq] = None
 
 
 # ---------------------------------------------------------------------------
@@ -38,6 +42,16 @@ def _client() -> genai.Client:
             raise EnvironmentError("GOOGLE_API_KEY non définie.")
         _gemini = genai.Client(api_key=api_key)
     return _gemini
+
+
+def _groq_client() -> Groq:
+    global _groq
+    if _groq is None:
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            raise EnvironmentError("GROQ_API_KEY non définie.")
+        _groq = Groq(api_key=api_key)
+    return _groq
 
 
 def _extraire_json(texte: str) -> dict:
@@ -80,7 +94,7 @@ def _formater_nutrition(aliment: dict, quantite_g: float) -> str:
 
 def _call_gemini(system: str, user: str, max_tokens: int = 1024) -> dict:
     resp = _client().models.generate_content(
-        model=MODEL,
+        model=GEMINI_MODEL,
         contents=[types.Part(text=user)],
         config=types.GenerateContentConfig(
             system_instruction=system,
@@ -322,26 +336,23 @@ RÈGLES DE RÉPONSE (toujours respecter) :
 
 {DISCLAIMER_TEXT}"""
 
-    contents = []
+    messages = [{"role": "system", "content": system}]
     for msg in historique[-12:]:
-        role = "user" if msg["role"] == "user" else "model"
-        contents.append(types.Content(role=role, parts=[types.Part(text=msg["content"])]))
-    contents.append(types.Content(role="user", parts=[types.Part(text=message)]))
+        role = "user" if msg["role"] == "user" else "assistant"
+        messages.append({"role": role, "content": msg["content"]})
+    messages.append({"role": "user", "content": message})
 
     try:
-        resp = _client().models.generate_content(
-            model=MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=system,
-                temperature=0.75,
-                max_output_tokens=900,
-            ),
+        resp = _groq_client().chat.completions.create(
+            model=GROQ_MODEL,
+            messages=messages,
+            temperature=0.75,
+            max_tokens=900,
         )
-        return resp.text or "Désolée, je n'ai pas pu répondre. Réessayez !"
+        return resp.choices[0].message.content or "Désolée, je n'ai pas pu répondre. Réessayez !"
     except Exception as exc:
-        logger.error("Erreur Aria : %s", exc)
-        return f"[DEBUG] Erreur Aria : {exc}"
+        logger.error("Erreur Aria (Groq) : %s", exc)
+        return "Je rencontre un problème technique. Réessayez dans un instant 😊"
 
 
 def analyser_prise_de_sang(images: list[dict]) -> dict:
@@ -379,7 +390,7 @@ def analyser_prise_de_sang(images: list[dict]) -> dict:
     contents.append(types.Part(text=prompt))
 
     client = _client()
-    response = client.models.generate_content(model=MODEL, contents=contents)
+    response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
     raw = response.text or ""
     try:
         data = _extraire_json(raw)

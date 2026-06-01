@@ -54,6 +54,29 @@ export async function sendAriaMessage(request: LeaChatRequest): Promise<string> 
   return data.response as string;
 }
 
+export interface FoodSuggestion {
+  nom: string;
+  energie_kcal: number;
+  potassium_mg: number;
+  phosphore_mg: number;
+  sodium_mg: number;
+}
+
+export async function searchFoods(query: string): Promise<FoodSuggestion[]> {
+  if (query.trim().length < 2) return [];
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/search?q=${encodeURIComponent(query.trim())}&limit=5`,
+      { signal: makeTimeoutSignal(5_000) },
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function checkApiHealth(): Promise<boolean> {
   try {
     const r = await fetch(`${API_BASE}/api/health`, { signal: makeTimeoutSignal(5_000) });
