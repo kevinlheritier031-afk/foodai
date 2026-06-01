@@ -92,18 +92,18 @@ def _formater_nutrition(aliment: dict, quantite_g: float) -> str:
     )
 
 
-def _call_gemini(system: str, user: str, max_tokens: int = 1024) -> dict:
-    resp = _client().models.generate_content(
-        model=GEMINI_MODEL,
-        contents=[types.Part(text=user)],
-        config=types.GenerateContentConfig(
-            system_instruction=system,
-            response_mime_type="application/json",
-            temperature=0.2,
-            max_output_tokens=max_tokens,
-        ),
+def _call_groq_json(system: str, user: str, max_tokens: int = 1024) -> dict:
+    resp = _groq_client().chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.2,
+        max_tokens=max_tokens,
+        response_format={"type": "json_object"},
     )
-    return _extraire_json(resp.text)
+    return _extraire_json(resp.choices[0].message.content)
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +177,7 @@ def analyser_nephrologue(
     p, s = profil or _DEFAULT_PROFIL, seuils or _DEFAULT_SEUILS
     nutrition = _formater_nutrition(aliment, quantite_g)
     try:
-        donnees = _call_gemini(
+        donnees = _call_groq_json(
             _prompt_nephrologue(p, s),
             f"Analyse l'impact rénal :\n\n{nutrition}",
         )
@@ -201,7 +201,7 @@ def analyser_diabetologue(
     p, s = profil or _DEFAULT_PROFIL, seuils or _DEFAULT_SEUILS
     nutrition = _formater_nutrition(aliment, quantite_g)
     try:
-        donnees = _call_gemini(
+        donnees = _call_groq_json(
             _prompt_diabetologue(p, s),
             f"Analyse l'impact glycémique :\n\n{nutrition}",
         )
@@ -233,7 +233,7 @@ def analyser_dieteticien(
     if verdict_diabetologue:
         contexte += f"\nVerdict glycémique : {verdict_diabetologue.get('niveau_alerte','?').upper()} — {verdict_diabetologue.get('message','')}"
     try:
-        donnees = _call_gemini(
+        donnees = _call_groq_json(
             _prompt_dieteticien(p, s),
             f"Conseils diététiques :\n\n{nutrition}{contexte}",
             max_tokens=1500,
